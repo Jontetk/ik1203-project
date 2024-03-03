@@ -27,72 +27,79 @@ public class HTTPAsk {
         
         
         String[] headerData = new String(recievedOutputStream.toByteArray()).split("\r\n");
-        String location = headerData[0].split(" ")[1];
-        try {
-            if(location.length()>5&& location.substring(0, 5).equals("/ask?")) {
-                String hostname = null;
-                Integer port = null;
-                byte[] string = null;
-                Boolean shutdown = null;
-                Integer limit = null;
-                Integer timeout = null;
-                boolean errored = false;
+        String[] getData = headerData[0].split(" ");
+        String location = getData[1];
+        if(getData[0].equals("GET") && getData[2].equals("HTTP/1.1")) {
+            try {
+                if(location.length()>5&& location.substring(0, 5).equals("/ask?")) {
+                    String hostname = null;
+                    Integer port = null;
+                    byte[] string = null;
+                    Boolean shutdown = null;
+                    Integer limit = null;
+                    Integer timeout = null;
+                    boolean errored = false;
 
-            argFor: for (String argument : location.substring(5).split("&")) {
-                    switch (argument.split("=")[0]) {
-                        case "hostname":
-                            hostname = argument.split("=")[1];
-                        break;
-                        case "port":
-                            port = Integer.parseInt(argument.split("=")[1]);
-                        break;
-                        case "string":
-                            string = (argument.split("=")[1]+"\n").getBytes();
-                        break;
-                        case "shutdown":
-                            shutdown = Boolean.parseBoolean(argument.split("=")[1]);
-                        break;
-                        case "limit":
-                            limit = Integer.parseInt(argument.split("=")[1]);
-                        break;
-                        case "timeout":
-                            timeout = Integer.parseInt(argument.split("=")[1]);
-                        break;
-                    
-                        default:
-                            errored = true;
-                            errorInArgs(sckt,1);
-                        break argFor;
-
-                    }
-                }
-                if(string == null)
-                    string = new byte[0];
-                if(shutdown == null)
-                    shutdown = false;
-                if(hostname !=null && port != null && !errored){
-                    try {
+                argFor: for (String argument : location.substring(5).split("&")) {
+                        switch (argument.split("=")[0]) {
+                            case "hostname":
+                                hostname = argument.split("=")[1];
+                            break;
+                            case "port":
+                                port = Integer.parseInt(argument.split("=")[1]);
+                            break;
+                            case "string":
+                                string = (argument.split("=")[1]+"\n").getBytes();
+                            break;
+                            case "shutdown":
+                                shutdown = Boolean.parseBoolean(argument.split("=")[1]);
+                            break;
+                            case "limit":
+                                limit = Integer.parseInt(argument.split("=")[1]);
+                            break;
+                            case "timeout":
+                                timeout = Integer.parseInt(argument.split("=")[1]);
+                            break;
                         
-                
-                    TCPClient tcpClient = new TCPClient(shutdown, timeout, limit);
-                    byte[] tcpResult = tcpClient.askServer(hostname, port, string);
-                    String resString = "HTTP/1.1 200 OK\r\n\r\n"+new String(tcpResult);
-                    byte[] toClient = resString.getBytes();
-                    sckt.getOutputStream().write(toClient);
-                } catch (IOException e) {
+                            default:
+                                errored = true;
+                                errorInArgs(sckt,2);
+                            break argFor;
+
+                        }
+                    }
+                    if(string == null)
+                        string = new byte[0];
+                    if(shutdown == null)
+                        shutdown = false;
+                    if(hostname !=null && port != null && !errored){
+                        try {
+                            
+                    
+                        TCPClient tcpClient = new TCPClient(shutdown, timeout, limit);
+                        byte[] tcpResult = tcpClient.askServer(hostname, port, string);
+                        String resString = "HTTP/1.1 200 OK\r\n\r\n"+new String(tcpResult);
+                        byte[] toClient = resString.getBytes();
+                        sckt.getOutputStream().write(toClient);
+                    } catch (IOException e) {
+                        errorInArgs(sckt,2);
+                    }
+                    }
+                    else if(!errored)
+                        errorInArgs(sckt,2);
+                }
+                else {
                     errorInArgs(sckt,2);
                 }
-                }
-                else if(!errored)
-                    errorInArgs(sckt,1);
             }
-            else {
-                errorInArgs(sckt,2);
+            catch(Exception e) {
+                errorInArgs(sckt, 2);
             }
         }
-        catch(Exception e) {
+        else {
             errorInArgs(sckt, 1);
-    }
+        }
+
         sckt.close();
 
         }

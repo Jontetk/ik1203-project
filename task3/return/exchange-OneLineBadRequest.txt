@@ -1,0 +1,22 @@
+From HTTP client to "HTTPAsk":
+
+    GET /ask?hostname=localhost&port=10042 PTTH/1.1
+    Host: localhost:8930
+    
+
+From "HTTPAsk" to daytime server:
+
+    <No data>
+
+From daytime server to "HTTPAsk":
+
+    The time is Thu Feb 29 09:29:51 2024
+    
+
+From "HTTPAsk" to HTTP client:
+
+    HTTP/1.1 200 OK
+    
+    The time is Thu Feb 29 09:29:51 2024
+    
+
